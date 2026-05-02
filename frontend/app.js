@@ -339,7 +339,7 @@ function renderPayloadChart(energyData, densityData, message) {
     var summaryBox = document.getElementById('extraction-summary');
     summaryBox.innerHTML = '<h4>Secure Extraction Summary</h4>' +
         'Your decrypted message is <strong>' + message.length + ' characters</strong> long. ' +
-        'However, to guarantee military-grade security, CovertWave encrypted your message into a secure ' +
+        'However, to guarantee strong security, CovertWave encrypted your message into a secure ' +
         '<strong>' + totalBits + '-bit payload</strong> using AES-256. This payload was shattered into ' +
         'microscopic fragments and seamlessly embedded across the audio file. The neon green spikes on ' +
         'the waveform above reveal the exact physical locations of these hidden fragments.';

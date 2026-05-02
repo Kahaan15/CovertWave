@@ -5,26 +5,25 @@
 <h1 align="center">CovertWave</h1>
 
 <p align="center">
-  <strong>Military-Grade Audio Steganography with Adaptive Energy-Weighted Embedding</strong>
+  <strong>Advanced Audio Steganography with Adaptive Energy-Weighted Embedding</strong>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
   <img src="https://img.shields.io/badge/AES--256--GCM-Encryption-00ff88" alt="AES-256">
-  <img src="https://img.shields.io/badge/IEEE-INDISCON%202026-blue" alt="IEEE">
 </p>
 
 ---
 
-CovertWave is a full-stack audio steganography system that hides encrypted messages inside WAV audio files using a novel **energy-weighted stochastic LSB embedding** algorithm. The system achieves PSNR values exceeding **75 dB** while remaining undetectable by industry-standard steganalysis methods.
+CovertWave is a full-stack audio steganography system that hides encrypted messages inside WAV audio files using a novel **energy-weighted stochastic LSB embedding** algorithm. The system achieves PSNR values exceeding **75 dB** while demonstrating high resistance to industry-standard steganalysis methods.
 
-Built for the **IEEE INDISCON 2026** conference paper submission.
+Developed as an academic research project exploring advanced steganographic techniques.
 
 ## Features
 
 - **Adaptive Energy-Weighted Embedding** — Stochastically distributes payload bits into high-energy audio frames, making detection statistically infeasible
-- **AES-256-GCM Encryption** — Messages are encrypted before embedding, providing military-grade confidentiality with authenticated encryption
+- **AES-256-GCM Encryption** — Messages are encrypted before embedding, providing robust confidentiality with authenticated encryption
 - **Multi-bit LSB Support** — Choose between 1-bit (highest quality), 2-bit (balanced), or 4-bit (high capacity) embedding
 - **Real-time Capacity Meter** — Live progress bar with color-coded security warnings (green/yellow/red)
 - **Extraction Payload Map** — Dual-axis Chart.js visualization showing where encrypted fragments are hidden in the audio waveform
@@ -34,13 +33,14 @@ Built for the **IEEE INDISCON 2026** conference paper submission.
 ## Architecture
 
 ```
-audio_steganography/
-|-- adaptive.py              # Energy-weighted stochastic embedding algorithm
-|-- encoder.py               # Standard randomized LSB encoder
-|-- decoder.py               # Standard LSB decoder
-|-- crypto.py                # AES-256-GCM encrypt/decrypt module
-|-- metrics.py               # PSNR, SNR, MSE, spectral analysis
-|-- steganalysis_extended.py # 4-method detection battery
+CovertWave/
+|-- core/                    # Core steganography engine
+|   |-- adaptive.py          # Energy-weighted stochastic embedding algorithm
+|   |-- encoder.py           # Standard randomized LSB encoder
+|   |-- decoder.py           # Standard LSB decoder
+|   |-- crypto.py            # AES-256-GCM encrypt/decrypt module
+|   |-- metrics.py           # PSNR, SNR, MSE, spectral analysis
+|   |-- steganalysis_extended.py # 4-method detection battery
 |
 |-- backend/
 |   |-- main.py              # FastAPI server (encode/decode/analyze APIs)
@@ -52,10 +52,11 @@ audio_steganography/
 |   |-- app.js               # UI logic, Chart.js visualizations
 |   |-- logo.png             # CovertWave icon
 |
-|-- research_benchmark.py    # 600-point benchmark runner
-|-- generate_paper_graphs.py # IEEE paper figure generator
-|-- research_results_full.csv# Full benchmark dataset
-|-- graphs_final/            # Generated IEEE paper figures
+|-- research/                # Research & Benchmarking
+|   |-- research_benchmark.py# 600-point benchmark runner
+|   |-- generate_paper_graphs.py # Figure generator
+|   |-- research_results_full.csv# Full benchmark dataset
+|   |-- graphs_final/        # Generated figures
 ```
 
 ## Quick Start
@@ -107,12 +108,12 @@ dataset/
 
 ## Research
 
-This project includes the full reproducible research pipeline used for the IEEE INDISCON 2026 paper:
+This project includes a full reproducible research pipeline for benchmarking audio steganography:
 
 - **`research_benchmark.py`** — Runs the complete 600-point benchmark across all audio categories, LSB configurations, and embedding algorithms
 - **`research_results_full.csv`** — Raw benchmark data (600 rows x 15+ metrics)
-- **`generate_paper_graphs.py`** — Generates all 5 publication-quality figures
-- **`graphs_final/`** — Pre-generated figures ready for paper inclusion
+- **`generate_paper_graphs.py`** — Generates publication-quality figures
+- **`graphs_final/`** — Pre-generated figures ready for review
 
 ### Key Results
 
@@ -131,4 +132,4 @@ This project includes the full reproducible research pipeline used for the IEEE 
 
 ## License
 
-This project is part of an academic research submission. Please cite appropriately if used in academic work.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
