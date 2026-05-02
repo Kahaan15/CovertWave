@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/AES--256--GCM-Encryption-00ff88" alt="AES-256">
+  <img src="https://img.shields.io/badge/AES--256--CBC-Encryption-00ff88" alt="AES-256">
 </p>
 
 ---
@@ -23,7 +23,7 @@ Developed as an academic research project exploring advanced steganographic tech
 ## Features
 
 - **Adaptive Energy-Weighted Embedding** — Stochastically distributes payload bits into high-energy audio frames, making detection statistically infeasible
-- **AES-256-GCM Encryption** — Messages are encrypted before embedding, providing robust confidentiality with authenticated encryption
+- **AES-256-CBC Encryption** — Messages are encrypted before embedding, providing robust confidentiality
 - **Multi-bit LSB Support** — Choose between 1-bit (highest quality), 2-bit (balanced), or 4-bit (high capacity) embedding
 - **Real-time Capacity Meter** — Live progress bar with color-coded security warnings (green/yellow/red)
 - **Extraction Payload Map** — Dual-axis Chart.js visualization showing where encrypted fragments are hidden in the audio waveform
@@ -38,7 +38,7 @@ CovertWave/
 |   |-- adaptive.py          # Energy-weighted stochastic embedding algorithm
 |   |-- encoder.py           # Standard randomized LSB encoder
 |   |-- decoder.py           # Standard LSB decoder
-|   |-- crypto.py            # AES-256-GCM encrypt/decrypt module
+|   |-- crypto.py            # AES-256-CBC encrypt/decrypt module
 |   |-- metrics.py           # PSNR, SNR, MSE, spectral analysis
 |   |-- steganalysis_extended.py # 4-method detection battery
 |
@@ -127,7 +127,7 @@ This project includes a full reproducible research pipeline for benchmarking aud
 
 - **Backend**: Python, FastAPI, NumPy, SciPy, PyCryptodome
 - **Frontend**: Vanilla JS, CSS, Chart.js
-- **Encryption**: AES-256-GCM (authenticated encryption)
+- **Encryption**: AES-256-CBC (Cipher Block Chaining mode)
 - **Signal Processing**: Frame-level RMS energy analysis, spectral transparency metrics
 
 ## License
