@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CovertWave</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="logo.png" alt="CovertWave" class="logo-img">
+                <h2>CovertWave</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-target="encode-section">Stego Studio (Encode)</li>
+                <li data-target="decode-section">Extraction Chamber (Decode)</li>
+                <li data-target="analyze-section">Security Dashboard</li>
+            </ul>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Encode Section -->
+            <section id="encode-section" class="view-section active">
+                <header>
+                    <h1>Stego Studio</h1>
+                    <p>Hide secret messages inside audio files securely.</p>
+                </header>
+                
+                <form id="encode-form" class="glass-panel">
+                    <div class="form-group">
+                        <label>Upload Cover Audio (.wav)</label>
+                        <input type="file" id="enc-audio" accept=".wav" required class="hidden-file-input">
+                        <label for="enc-audio" class="custom-file-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <span class="file-name">Choose WAV File</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="enc-message">Secret Message</label>
+                        <textarea id="enc-message" rows="4" placeholder="Enter message to hide..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="enc-password">AES Encryption Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="enc-password" placeholder="Enter secure password" required>
+                            <span class="password-toggle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="enc-algo">Embedding Algorithm</label>
+                            <select id="enc-algo">
+                                <option value="adaptive">Adaptive Energy-Weighted (Recommended)</option>
+                                <option value="standard">Standard Randomized LSB</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="enc-lsb">LSB Bits</label>
+                            <select id="enc-lsb">
+                                <option value="1">1-bit (Highest Quality)</option>
+                                <option value="2">2-bit (Balanced)</option>
+                                <option value="4">4-bit (High Capacity)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="capacity-info" id="capacity-display">
+                        Select an audio file to view capacity.
+                    </div>
+
+                    <div class="capacity-meter-container hidden" id="capacity-meter-container">
+                        <div class="capacity-meter-labels">
+                            <span>Capacity Used</span>
+                            <span id="capacity-meter-text">0% (0 / 0 chars)</span>
+                        </div>
+                        <div class="capacity-meter-bar">
+                            <div class="capacity-meter-fill" id="capacity-meter-fill"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn primary-btn">
+                        <span class="btn-text">Encode & Download</span>
+                        <div class="loader hidden"></div>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Decode Section -->
+            <section id="decode-section" class="view-section hidden">
+                <header>
+                    <h1>Extraction Chamber</h1>
+                    <p>Securely retrieve hidden messages from stego-audio.</p>
+                </header>
+                
+                <form id="decode-form" class="glass-panel">
+                    <div class="form-group">
+                        <label>Upload Stego Audio (.wav)</label>
+                        <input type="file" id="dec-audio" accept=".wav" required class="hidden-file-input">
+                        <label for="dec-audio" class="custom-file-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <span class="file-name">Choose WAV File</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dec-password">Decryption Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="dec-password" placeholder="Enter password" required>
+                            <span class="password-toggle">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label for="dec-algo">Embedding Algorithm</label>
+                            <select id="dec-algo">
+                                <option value="adaptive">Adaptive Energy-Weighted</option>
+                                <option value="standard">Standard Randomized LSB</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dec-lsb">LSB Bits</label>
+                            <select id="dec-lsb">
+                                <option value="1">1-bit</option>
+                                <option value="2">2-bit</option>
+                                <option value="4">4-bit</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn primary-btn">
+                        <span class="btn-text">Extract Message</span>
+                        <div class="loader hidden"></div>
+                    </button>
+
+                    <div id="decode-result" class="result-box hidden">
+                        <h3>Decrypted Message</h3>
+                        <p id="decrypted-text" style="white-space: pre-wrap; word-break: break-all; margin-bottom: 1.5rem;"></p>
+                        
+                        <h3>Extraction Payload Map</h3>
+                        <div style="width: 100%; height: 200px;">
+                            <canvas id="payloadChart"></canvas>
+                        </div>
+                        <div id="extraction-summary" class="extraction-summary-box hidden"></div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Analyze Section -->
+            <section id="analyze-section" class="view-section hidden">
+                <header>
+                    <h1>Security Dashboard</h1>
+                    <p>Run the full steganalysis battery on any audio file.</p>
+                </header>
+                
+                <form id="analyze-form" class="glass-panel mb-2">
+                    <div class="form-group">
+                        <label>Upload Audio to Analyze (.wav)</label>
+                        <input type="file" id="ana-audio" accept=".wav" required class="hidden-file-input">
+                        <label for="ana-audio" class="custom-file-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <span class="file-name">Choose WAV File</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn primary-btn">
+                        <span class="btn-text">Run Steganalysis</span>
+                        <div class="loader hidden"></div>
+                    </button>
+                </form>
+
+                <div id="analyze-results" class="results-dashboard hidden">
+                    <!-- Results populated by JS -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

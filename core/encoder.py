@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from scipy.io import wavfile
-from crypto import encrypt_message, derive_seed, get_encrypted_length
+from .crypto import encrypt_message, derive_seed, get_encrypted_length
 
 
 def get_random_positions(total_samples: int, num_positions: int, seed: int) -> list:

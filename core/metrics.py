@@ -1,36 +1,33 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
-from encoder import encode_message
-from decoder import decode_message
+from .encoder import encode_message
+from .decoder import decode_message
 import os
 import tempfile
 
 
+def _read_robust(wav_path: str) -> np.ndarray:
+    """Robust audio reader for inconsistent headers."""
+    try:
+        from scipy.io import wavfile
+        _, samples = wavfile.read(wav_path)
+    except:
+        import soundfile as sf
+        samples, _ = sf.read(wav_path, dtype='int16')
+    
+    if samples.ndim == 2:
+        samples = samples[:, 0]
+    return samples.astype(np.float64)
+
 def calculate_psnr(original_wav: str, stego_wav: str) -> float:
-    """
-    Calculates PSNR (Peak Signal-to-Noise Ratio) between original
-    and stego audio files.
-
-    Higher PSNR = better quality = less distortion.
-    PSNR > 40 dB is generally considered imperceptible to human ear.
-
-    Formula: PSNR = 20 * log10(MAX) - 10 * log10(MSE)
-    """
-
-    # --- Read both files ---
-    _, original = wavfile.read(original_wav)
-    _, stego    = wavfile.read(stego_wav)
-
-    # --- Use left channel if stereo ---
-    if original.ndim == 2:
-        original = original[:, 0]
-    if stego.ndim == 2:
-        stego = stego[:, 0]
-
-    # --- Convert to float for calculation ---
-    original = original.astype(np.float64)
-    stego    = stego.astype(np.float64)
+    """Calculates PSNR robustly."""
+    original = _read_robust(original_wav)
+    stego    = _read_robust(stego_wav)
+    
+    # Align lengths
+    min_len = min(len(original), len(stego))
+    mse = np.mean((original[:min_len] - stego[:min_len]) ** 2)
 
     # --- Calculate MSE (Mean Squared Error) ---
     mse = np.mean((original - stego) ** 2)
@@ -48,20 +45,12 @@ def calculate_psnr(original_wav: str, stego_wav: str) -> float:
 
 
 def calculate_mse(original_wav: str, stego_wav: str) -> float:
-    """
-    Calculates Mean Squared Error between original and stego audio.
-    Lower MSE = less distortion.
-    """
-    _, original = wavfile.read(original_wav)
-    _, stego    = wavfile.read(stego_wav)
-
-    if original.ndim == 2:
-        original = original[:, 0]
-    if stego.ndim == 2:
-        stego = stego[:, 0]
-
-    original = original.astype(np.float64)
-    stego    = stego.astype(np.float64)
+    """Calculates MSE robustly."""
+    original = _read_robust(original_wav)
+    stego    = _read_robust(stego_wav)
+    min_len = min(len(original), len(stego))
+    mse = np.mean((original[:min_len] - stego[:min_len]) ** 2)
+    return round(float(mse), 6)
 
     mse = np.mean((original - stego) ** 2)
     return round(mse, 6)

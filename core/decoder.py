@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from scipy.io import wavfile
-from crypto import decrypt_message, derive_seed
+from .crypto import decrypt_message, derive_seed
 
 
 def get_random_positions(total_samples: int, num_positions: int, seed: int) -> list:
@@ -113,7 +113,7 @@ def decode_message(stego_wav: str, password: str, lsb_bits: int = 1) -> str:
     try:
         message = decrypt_message(encrypted_data, password)
         print(f"[SUCCESS] Message decoded successfully!")
-        return message
+        return message, all_positions, total_samples
     except Exception as e:
         raise ValueError(
             "Decryption failed. Likely wrong password or corrupted file."
