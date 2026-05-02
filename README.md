@@ -44,7 +44,8 @@ CovertWave/
 |
 |-- backend/
 |   |-- main.py              # FastAPI server (encode/decode/analyze APIs)
-|   |-- requirements.txt     # Python dependencies
+|
+|-- requirements.txt         # Python dependencies
 |
 |-- frontend/
 |   |-- index.html           # Single-page app structure
@@ -76,7 +77,7 @@ cd CovertWave
 ### 2. Install dependencies
 
 ```bash
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### 3. Run the server

@@ -1,4 +1,5 @@
-var API_BASE = 'http://localhost:8000/api';
+// Use relative path so API calls hit the same host serving the frontend
+var API_BASE = '/api';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Toast Notifications
