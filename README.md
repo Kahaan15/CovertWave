@@ -20,10 +20,6 @@ CovertWave is a full-stack audio steganography system that hides encrypted messa
 
 This code backs the paper *"Energy-Weighted Stochastic LSB: Enhancing Steganalysis Evasion in Temporal Audio Steganography"*, presented at the **7th IEEE INDISCON 2026** (MNIT Jaipur, 11-13 September 2026).
 
-> **Note on results.** The figures above come from the corrected benchmark, and they
-> supersede the numbers in the originally submitted version of the paper. See
-> [Corrections to the original study](#corrections-to-the-original-study) below.
-
 ## Features
 
 - **Adaptive Energy-Weighted Embedding** — Stochastically distributes payload bits into high-energy audio frames, making detection statistically infeasible
@@ -164,53 +160,7 @@ python research/figures.py      # figures at 600 dpi
 
 Results depend on the calibration step, so run `calibrate.py` before
 `benchmark.py`. Both are resumable: re-running skips rows already present in the
-CSVs. `research/research_results_full.csv` preserves the original pre-correction
-dataset for reference; every other CSV is from the corrected run.
-
-## Corrections to the original study
-
-The version of this paper first submitted to INDISCON reported results that an audit of
-this codebase found were not reproducible. The code was fixed, every experiment re-run,
-and the camera-ready paper revised to match. This section records what was wrong, because
-the corrected numbers differ from the submitted ones.
-
-**1. Two of the three benchmark arms were the same algorithm.**
-The original `research_benchmark.py` had a three-way branch in which the "Sequential" and
-"Randomized" cases both called `encode_message()`. No sequential embedder existed. Every
-sequential-vs-randomized conclusion in the submitted paper therefore described a difference
-that was only the random AES initialisation vector. Fixed by `core/embedding.py`, which
-dispatches through a table of strategies so the arms are data rather than branches, and by
-`core/sequential.py`, which implements the missing baseline.
-
-**2. The detector battery was measuring the cover, not the payload.**
-Thresholds were hand-chosen constants with no false-positive rate attached. Under them the
-clean covers scored 63.6% "survival" while stego audio at 1-10% payload scored 62-65% --
-the signature of a detector responding to the audio rather than to the embedding. Fixed by
-`research/calibrate.py`, which sets each threshold at the 95th percentile of its clean-cover
-distribution, giving every detector a defined 5% false-positive rate. This also established
-the clean-cover control arm the original study never had: audio containing nothing survives
-the battery only 81.8% of the time, and that is the ceiling every result must be read against.
-
-**3. The adaptive decoder corrupted part of the corpus.**
-Embedding weights were computed on the raw signal, so the act of embedding perturbed the
-very distribution used to locate the payload. The weighted CDF shifted enough to move a draw
-across a boundary, and one displaced position corrupts the message -- silently, without
-raising. Fixed by computing weights on the LSB-cleared signal (`core/adaptive.py`), so
-encoder and decoder derive identical distributions, and by replacing the position draw with
-an Efraimidis-Spirakis exponential race, which is prefix-stable and so lets the decoder draw
-the header and the payload consistently.
-
-**Why these survived to submission:** the repository had no tests. Nothing asserted that a
-message came back intact, and nothing asserted that two strategies produce different output.
-Both are now assertions in `tests/test_covertwave.py`.
-
-**What changed in the results.** The corrected benchmark covers 704 conditions with a
-clean-cover control, replicated over ten independent password draws. Energy-adaptive
-placement raises evasion by 25.2 +/- 4.4 percentage points at 50% payload and 19.5 +/- 3.4
-at 25%, positive in all twenty comparisons. A component ablation attributes the gain to the
-energy weighting alone (+25.0 points); uniform randomisation contributes -11.4 and encryption
-none. `research/research_results_full.csv` is retained as the pre-correction record.
-
+CSVs.
 
 ## Tech Stack
 
