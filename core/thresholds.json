@@ -1,0 +1,69 @@
+{
+  "target_false_positive_rate_percent": 5.0,
+  "n_clean_covers": 44,
+  "thresholds": {
+    "chi_square": {
+      "statistic": "equalized_block_fraction",
+      "threshold": 1.0,
+      "saturated": true
+    },
+    "rs_analysis": {
+      "statistic": "rs_diff",
+      "threshold": 0.016474450000000005,
+      "saturated": false
+    },
+    "spa": {
+      "statistic": "beta",
+      "threshold": 0.008531889500000008,
+      "saturated": false
+    },
+    "histogram": {
+      "statistic": "pov_equalization",
+      "threshold": 0.9824260499999999,
+      "saturated": false
+    }
+  },
+  "clean_distribution": {
+    "chi_square": {
+      "n": 44,
+      "mean": 0.8157621363636363,
+      "std": 0.2989528932811828,
+      "min": 0.0,
+      "p50": 0.9636245,
+      "p95": 1.0,
+      "max": 1.0,
+      "realised_fpr_percent": 0.0
+    },
+    "rs_analysis": {
+      "n": 44,
+      "mean": 0.004394727272727272,
+      "std": 0.006213774078286326,
+      "min": 0.000297,
+      "p50": 0.0023415,
+      "p95": 0.016474450000000005,
+      "max": 0.034236,
+      "realised_fpr_percent": 6.8181818181818175
+    },
+    "spa": {
+      "n": 44,
+      "mean": 0.000911532272727273,
+      "std": 0.003277246596376977,
+      "min": -0.00694774,
+      "p50": 0.000277815,
+      "p95": 0.008531889500000008,
+      "max": 0.01238369,
+      "realised_fpr_percent": 6.8181818181818175
+    },
+    "histogram": {
+      "n": 44,
+      "mean": 0.9074444318181816,
+      "std": 0.08498325397815837,
+      "min": 0.52266,
+      "p50": 0.9217249999999999,
+      "p95": 0.9824260499999999,
+      "max": 0.988884,
+      "realised_fpr_percent": 6.8181818181818175
+    }
+  },
+  "note": "Thresholds are the 95th percentile of each statistic over the clean cover set, giving a nominal 5% false-positive rate per detector."
+}

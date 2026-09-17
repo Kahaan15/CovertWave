@@ -1,6 +1,10 @@
+import logging
 import numpy as np
 import random
 from scipy.io import wavfile
+
+logger = logging.getLogger(__name__)
+from .audio_io import read_wav
 from .crypto import decrypt_message, derive_seed
 
 
@@ -14,7 +18,7 @@ def get_random_positions(total_samples: int, num_positions: int, seed: int) -> l
     return positions
 
 
-def decode_message(stego_wav: str, password: str, lsb_bits: int = 1) -> str:
+def decode_message(stego_wav: str, password: str, lsb_bits: int = 1) -> tuple:
     """
     Main decoding function.
     Extracts and decrypts hidden message from stego audio file.
@@ -25,11 +29,12 @@ def decode_message(stego_wav: str, password: str, lsb_bits: int = 1) -> str:
         lsb_bits  : Same LSB bit count used during encoding (1, 2, or 4)
 
     Returns:
-        Decrypted secret message as string
+        (message, positions, total_samples) — the positions are returned so the
+        UI can draw where the payload landed.
     """
 
     # --- Step 1: Read stego audio file ---
-    sample_rate, samples = wavfile.read(stego_wav)
+    sample_rate, samples = read_wav(stego_wav)
 
     # Handle stereo — use same channel as encoder (left channel)
     if samples.ndim == 2:
@@ -67,7 +72,7 @@ def decode_message(stego_wav: str, password: str, lsb_bits: int = 1) -> str:
     for bit in header_bits:
         payload_length = (payload_length << 1) | bit
 
-    print(f"[INFO] Detected payload length : {payload_length} bytes")
+    logger.info(f"[INFO] Detected payload length : {payload_length} bytes")
 
     # Sanity check
     if payload_length <= 0 or payload_length > total_samples:
@@ -107,12 +112,12 @@ def decode_message(stego_wav: str, password: str, lsb_bits: int = 1) -> str:
     # --- Step 5: Separate header and encrypted payload ---
     encrypted_data = bytes(all_bytes[4:4 + payload_length])
 
-    print(f"[INFO] Extracted encrypted bytes : {len(encrypted_data)}")
+    logger.info(f"[INFO] Extracted encrypted bytes : {len(encrypted_data)}")
 
     # --- Step 6: Decrypt using AES ---
     try:
         message = decrypt_message(encrypted_data, password)
-        print(f"[SUCCESS] Message decoded successfully!")
+        logger.info(f"[SUCCESS] Message decoded successfully!")
         return message, all_positions, total_samples
     except Exception as e:
         raise ValueError(

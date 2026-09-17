@@ -1,3 +1,26 @@
+"""
+crypto.py — AES-256-CBC payload encryption.
+
+KNOWN LIMITATIONS, deliberately left in place.
+
+These are real weaknesses, but changing them would alter payload sizes and the
+key schedule and so invalidate comparison with the published benchmark. They are
+documented here and listed as future work rather than silently fixed:
+
+  1. derive_key is a bare SHA-256 of the password: no salt, no iteration count,
+     no memory hardness. It is not a password-based key derivation function and
+     offers no resistance to offline brute force or precomputation. A real
+     deployment wants PBKDF2-HMAC-SHA256, scrypt or Argon2 with a stored salt.
+  2. The same password seeds BOTH the AES key and the embedding position map, so
+     one compromised secret yields both the plaintext and the location of every
+     modified sample. Independent subkeys derived from a single master secret
+     (e.g. HKDF with distinct info strings) would separate the two roles.
+  3. CBC provides confidentiality but no integrity. The ciphertext is malleable
+     and there is no MAC, so tampering is undetectable and the only failure
+     signal is an unpadding error — a padding-oracle shape. Encrypt-then-MAC, or
+     an AEAD mode such as AES-GCM, would fix this.
+"""
+
 import hashlib
 import os
 from Crypto.Cipher import AES
@@ -7,7 +30,8 @@ from Crypto.Util.Padding import pad, unpad
 def derive_key(password: str) -> bytes:
     """
     Derives a 32-byte AES-256 key from the password using SHA-256.
-    Also used as seed for randomization in encoder/decoder.
+
+    NOT a password-based KDF — no salt, no iterations. See the module docstring.
     """
     return hashlib.sha256(password.encode('utf-8')).digest()
 

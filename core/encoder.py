@@ -1,6 +1,10 @@
+import logging
 import numpy as np
 import random
 from scipy.io import wavfile
+
+logger = logging.getLogger(__name__)
+from .audio_io import read_wav, require_integer_pcm
 from .crypto import encrypt_message, derive_seed, get_encrypted_length
 
 
@@ -28,7 +32,8 @@ def encode_message(input_wav: str, output_wav: str, message: str, password: str,
     """
 
     # --- Step 1: Read audio file ---
-    sample_rate, samples = wavfile.read(input_wav)
+    sample_rate, samples = read_wav(input_wav)
+    require_integer_pcm(samples, input_wav)
 
     # Handle stereo — flatten to mono view for embedding
     original_shape = samples.shape
@@ -64,11 +69,11 @@ def encode_message(input_wav: str, output_wav: str, message: str, password: str,
             f"audio only has {total_samples} samples."
         )
 
-    print(f"[INFO] Message size     : {len(message)} characters")
-    print(f"[INFO] Encrypted size   : {len(encrypted)} bytes")
-    print(f"[INFO] Total bits       : {total_bits}")
-    print(f"[INFO] Samples used     : {num_positions} / {total_samples}")
-    print(f"[INFO] LSB bits used    : {lsb_bits}")
+    logger.info(f"[INFO] Message size     : {len(message)} characters")
+    logger.info(f"[INFO] Encrypted size   : {len(encrypted)} bytes")
+    logger.info(f"[INFO] Total bits       : {total_bits}")
+    logger.info(f"[INFO] Samples used     : {num_positions} / {total_samples}")
+    logger.info(f"[INFO] LSB bits used    : {lsb_bits}")
 
     # --- Step 6: Generate random positions using password seed ---
     seed = derive_seed(password)
@@ -102,7 +107,7 @@ def encode_message(input_wav: str, output_wav: str, message: str, password: str,
         samples = flat_samples.astype(samples.dtype)
 
     wavfile.write(output_wav, sample_rate, samples)
-    print(f"[SUCCESS] Stego audio saved to: {output_wav}")
+    logger.info(f"[SUCCESS] Stego audio saved to: {output_wav}")
 
 
 def calculate_capacity(input_wav: str, lsb_bits: int = 1) -> dict:
@@ -110,7 +115,7 @@ def calculate_capacity(input_wav: str, lsb_bits: int = 1) -> dict:
     Calculates how much data can be hidden in the given WAV file.
     Returns capacity info as a dictionary.
     """
-    sample_rate, samples = wavfile.read(input_wav)
+    sample_rate, samples = read_wav(input_wav)
 
     if samples.ndim == 2:
         total_samples = samples.shape[0]

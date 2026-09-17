@@ -14,9 +14,12 @@ This is the novel contribution of the paper:
     combined in published work.
 """
 
+import logging
 import numpy as np
 import random
 from scipy.io import wavfile
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -45,6 +48,26 @@ def compute_frame_energy(samples: np.ndarray, frame_size: int = 512) -> np.ndarr
         energy[i] = rms
 
     return energy
+
+
+def lsb_cleared(samples: np.ndarray, lsb_bits: int) -> np.ndarray:
+    """
+    Returns the signal with its `lsb_bits` lowest bits zeroed, as float64.
+
+    This is what makes encoder and decoder agree. Embedding rewrites exactly
+    those low bits, so a cover and its stego differ ONLY there — clearing them
+    yields a byte-identical signal on both sides, and therefore an identical
+    energy profile, weight vector and position draw.
+
+    Computing the energy on the raw signal (as the original implementation did)
+    lets the embedding perturb the very distribution used to locate it: the
+    weighted CDF shifts by ~1e-8, occasionally moving a draw across a boundary,
+    and a single displaced position corrupts the payload.
+    """
+    if lsb_bits <= 0:
+        return samples.astype(np.float64)
+    ints = samples.astype(np.int64)
+    return (ints & ~((1 << lsb_bits) - 1)).astype(np.float64)
 
 
 def energy_to_sample_weights(
@@ -108,7 +131,8 @@ def get_adaptive_positions(
     num_positions: int,
     seed: int,
     frame_size: int = 512,
-    min_weight: float = 0.05
+    min_weight: float = 0.05,
+    lsb_bits: int = 0
 ) -> list:
     """
     Selects embedding positions weighted by local audio energy.
@@ -126,9 +150,11 @@ def get_adaptive_positions(
         seed          : Deterministic seed (derived from password)
         frame_size    : Frame size for energy analysis
         min_weight    : Minimum probability weight for silent samples
+        lsb_bits      : Bits the embedder will overwrite. Cleared before the
+                        energy analysis so cover and stego yield the same draw.
 
     Returns:
-        positions : Sorted list of unique sample indices
+        positions : List of unique sample indices, in draw order
     """
     total_samples = len(samples)
 
@@ -137,21 +163,23 @@ def get_adaptive_positions(
             f"Need {num_positions} positions but audio only has {total_samples} samples."
         )
 
-    # Compute energy-based weights
-    weights = energy_to_sample_weights(samples, frame_size, min_weight)
-
-    # Use seeded numpy RNG for deterministic weighted sampling
-    rng = np.random.default_rng(seed)
-
-    # Weighted sampling WITHOUT replacement
-    positions = rng.choice(
-        total_samples,
-        size=num_positions,
-        replace=False,
-        p=weights
+    # Compute energy-based weights on the embedding-invariant signal
+    weights = energy_to_sample_weights(
+        lsb_cleared(samples, lsb_bits), frame_size, min_weight
     )
 
-    return positions.tolist()
+    # Weighted sampling WITHOUT replacement via the Efraimidis-Spirakis
+    # exponential race: key_i = Exp(1) / w_i, then take the smallest keys.
+    # This draws from exactly the same distribution as a weighted no-replacement
+    # draw, but is *prefix-stable*: the first k of the ranking are the same for
+    # every k. The decoder needs that — it draws 32 bits of header first and the
+    # full payload second, and those two draws must agree on their overlap.
+    # np.random.Generator.choice(replace=False, p=...) does not guarantee this.
+    rng  = np.random.default_rng(seed)
+    keys = rng.exponential(size=total_samples) / weights
+
+    ranking = np.argsort(keys, kind="stable")
+    return ranking[:num_positions].tolist()
 
 
 def get_uniform_positions(
@@ -194,10 +222,12 @@ def encode_adaptive(
         min_weight : Minimum embedding probability for silent regions
     """
     from scipy.io import wavfile as wf
+    from .audio_io import read_wav, require_integer_pcm
     from .crypto import encrypt_message, derive_seed
 
     # --- Read audio ---
-    sample_rate, samples = wf.read(input_wav)
+    sample_rate, samples = read_wav(input_wav)
+    require_integer_pcm(samples, input_wav)
     original_shape = samples.shape
 
     if samples.ndim == 2:
@@ -227,17 +257,18 @@ def encode_adaptive(
             f"audio only has {total_samples}."
         )
 
-    print(f"[ADAPTIVE] Message     : {len(message)} chars")
-    print(f"[ADAPTIVE] Encrypted   : {len(encrypted)} bytes")
-    print(f"[ADAPTIVE] Total bits  : {total_bits}")
-    print(f"[ADAPTIVE] Samples used: {num_positions} / {total_samples}")
-    print(f"[ADAPTIVE] Frame size  : {frame_size}")
-    print(f"[ADAPTIVE] Min weight  : {min_weight}")
+    logger.info(f"[ADAPTIVE] Message     : {len(message)} chars")
+    logger.info(f"[ADAPTIVE] Encrypted   : {len(encrypted)} bytes")
+    logger.info(f"[ADAPTIVE] Total bits  : {total_bits}")
+    logger.info(f"[ADAPTIVE] Samples used: {num_positions} / {total_samples}")
+    logger.info(f"[ADAPTIVE] Frame size  : {frame_size}")
+    logger.info(f"[ADAPTIVE] Min weight  : {min_weight}")
 
-    # --- Energy analysis ---
+    # --- Energy analysis (on the LSB-cleared signal, see lsb_cleared) ---
     seed      = derive_seed(password)
-    work_arr  = flat_samples.astype(np.float64)
-    positions = get_adaptive_positions(work_arr, num_positions, seed, frame_size, min_weight)
+    positions = get_adaptive_positions(
+        flat_samples, num_positions, seed, frame_size, min_weight, lsb_bits
+    )
 
     # --- Embed bits ---
     flat_samples = flat_samples.astype(np.int32)
@@ -262,7 +293,7 @@ def encode_adaptive(
         samples = flat_samples.astype(samples.dtype)
 
     wf.write(output_wav, sample_rate, samples)
-    print(f"[ADAPTIVE] Stego saved : {output_wav}")
+    logger.info(f"[ADAPTIVE] Stego saved : {output_wav}")
 
 
 def decode_adaptive(
@@ -271,7 +302,7 @@ def decode_adaptive(
     lsb_bits: int = 1,
     frame_size: int = 512,
     min_weight: float = 0.05
-) -> str:
+) -> tuple:
     """
     Decodes a message hidden using encode_adaptive().
     Must use identical frame_size and min_weight as encoding.
@@ -284,13 +315,15 @@ def decode_adaptive(
         min_weight : Same min_weight used during encoding
 
     Returns:
-        Decrypted secret message string
+        (message, positions, total_samples) — the positions are returned so the
+        UI can draw where the payload landed.
     """
     from scipy.io import wavfile as wf
+    from .audio_io import read_wav
     from .crypto import decrypt_message, derive_seed
 
     # --- Read stego audio ---
-    sample_rate, samples = wf.read(stego_wav)
+    sample_rate, samples = read_wav(stego_wav)
 
     if samples.ndim == 2:
         flat_samples = samples[:, 0].copy()
@@ -306,9 +339,8 @@ def decode_adaptive(
     header_bits_needed     = 32
     header_positions_needed = (header_bits_needed + lsb_bits - 1) // lsb_bits
 
-    work_arr = flat_samples.astype(np.float64)
     all_header_positions = get_adaptive_positions(
-        work_arr, header_positions_needed, seed, frame_size, min_weight
+        flat_samples, header_positions_needed, seed, frame_size, min_weight, lsb_bits
     )
 
     header_bits = []
@@ -323,7 +355,7 @@ def decode_adaptive(
     for bit in header_bits:
         payload_length = (payload_length << 1) | bit
 
-    print(f"[ADAPTIVE] Detected payload length: {payload_length} bytes")
+    logger.info(f"[ADAPTIVE] Detected payload length: {payload_length} bytes")
 
     if payload_length <= 0 or payload_length > total_samples:
         raise ValueError("Invalid payload length. Wrong password or not a stego file.")
@@ -333,7 +365,7 @@ def decode_adaptive(
     total_positions_needed = (total_bits_needed + lsb_bits - 1) // lsb_bits
 
     all_positions = get_adaptive_positions(
-        work_arr, total_positions_needed, seed, frame_size, min_weight
+        flat_samples, total_positions_needed, seed, frame_size, min_weight, lsb_bits
     )
 
     all_bits = []
@@ -356,11 +388,11 @@ def decode_adaptive(
         all_bytes.append(byte_val)
 
     encrypted_data = bytes(all_bytes[4:4 + payload_length])
-    print(f"[ADAPTIVE] Extracted encrypted bytes: {len(encrypted_data)}")
+    logger.info(f"[ADAPTIVE] Extracted encrypted bytes: {len(encrypted_data)}")
 
     try:
         message = decrypt_message(encrypted_data, password)
-        print(f"[ADAPTIVE] Decode successful!")
+        logger.info(f"[ADAPTIVE] Decode successful!")
         return message, all_positions, total_samples
     except Exception as e:
         raise ValueError("Decryption failed. Wrong password or corrupted file.") from e
