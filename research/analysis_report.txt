@@ -1,0 +1,147 @@
+COVERTWAVE — CORRECTED BENCHMARK ANALYSIS
+
+==============================================================================
+  1. DATASET AND RUN COUNTS
+==============================================================================
+  Cover files analysed        : 44
+    ambient        11
+    instrumental   11
+    short_voice    11
+    speech         11
+  Control (0% payload) runs   : 44
+  Embedded runs               : 660
+  Total rows                  : 704
+  Methods x rates             : 3 x 5
+
+==============================================================================
+  2. DETECTOR CALIBRATION AND POWER
+==============================================================================
+  Threshold = 95th percentile of the clean-cover distribution,
+  i.e. each detector is calibrated to a 5% false-positive rate.
+
+  detector         threshold   FPR (clean)    TPR @50%     power
+  --------------------------------------------------------------
+  chi_square        1.000000         0.0%        0.0%    NONE (saturated)
+  rs_analysis       0.016474         6.8%       56.1%              strong
+  spa               0.008532         6.8%       43.9%              strong
+  histogram         0.982426         6.8%        6.1%                NONE
+
+  A detector whose TPR does not exceed its FPR is not detecting anything.
+  Chi-square saturates on 16-bit audio: the LSB plane is already
+  noise-like, so clean covers max out the pairs-of-values statistic and
+  embedding has no headroom left to push it further.
+
+==============================================================================
+  3. CLEAN-COVER BASELINE (the control the original study lacked)
+==============================================================================
+  Clean covers scoring SAFE (0 detectors fired): 36/44 = 81.8% [95% CI 68.0-90.5%]
+  Mean discriminative detectors triggered      : 0.205
+
+  Under the ORIGINAL battery this baseline was 63.6% 'survival' — the same
+  as stego at 1-10% payload — meaning it could not separate cover from
+  stego at all. A calibrated battery must sit near 100% here.
+
+==============================================================================
+  4. PERCEPTUAL QUALITY
+==============================================================================
+    rate                  Sequential                Randomized                  Adaptive
+                 PSNR dB      SNR dB       PSNR dB      SNR dB       PSNR dB      SNR dB
+  ------------------------------------------------------------------------------------
+      1%         113.35        89.07       113.33        89.05       113.31        89.02
+      5%         106.36        82.08       106.35        82.07       106.34        82.06
+     10%         103.35        79.06       103.34        79.05       103.34        79.05
+     25%          99.35        75.06        99.35        75.06        99.34        75.06
+     50%          96.34        72.05        96.33        72.05        96.33        72.05
+
+  PSNR is a function of how many bits were flipped, which is identical
+  across the three methods by construction, so these columns agreeing is
+  expected and is NOT evidence of anything about the position strategies.
+
+  Spectral flatness deviation and LSB-plane entropy change:
+    rate                Sequential              Randomized                Adaptive
+                SF dev    dEntropy      SF dev    dEntropy      SF dev    dEntropy
+  ------------------------------------------------------------------------------
+      1%       0.000246   0.000171     0.000292   0.000027     0.000291   0.000017
+      5%       0.001288   0.000350     0.001314   0.000106     0.001313   0.000036
+     10%       0.002367   0.000432     0.002406   0.000202     0.002406   0.000070
+     25%       0.004894   0.000568     0.004928   0.000471     0.004951   0.000197
+     50%       0.007814   0.000802     0.007840   0.000829     0.007851   0.000437
+
+==============================================================================
+  5. STEGANALYSIS SURVIVAL
+==============================================================================
+    rate            Sequential            Randomized              Adaptive
+  ------------------------------------------------------------------------
+      1%     81.8% [68.0-90.5]     84.1% [70.6-92.1]     81.8% [68.0-90.5]
+      5%     68.2% [53.4-80.0]     77.3% [63.0-87.2]     84.1% [70.6-92.1]
+     10%     65.9% [51.1-78.1]     70.5% [55.8-81.8]     81.8% [68.0-90.5]
+     25%     52.3% [37.9-66.2]     47.7% [33.8-62.1]     72.7% [58.2-83.7]
+     50%     40.9% [27.7-55.6]     29.5% [18.2-44.2]     56.8% [42.2-70.3]
+
+  'Survived' = zero discriminative detectors fired. Brackets are 95% Wilson CIs.
+
+==============================================================================
+  6. SIGNIFICANCE TESTS (paired, McNemar exact)
+==============================================================================
+  Adaptive vs Randomized, per payload rate:
+    rate   adaptive   randomized   delta pp   relative         p      
+  --------------------------------------------------------------------
+      1%      81.8%        84.1%       -2.3      -2.7%    1.0000    ns
+      5%      84.1%        77.3%        6.8       8.8%    0.2500    ns
+     10%      81.8%        70.5%       11.4      16.1%    0.1250    ns
+     25%      72.7%        47.7%       25.0      52.4%    0.0010    **
+     50%      56.8%        29.5%       27.3      92.3%    0.0018    **
+
+  Adaptive vs Randomized, per domain at 50% payload:
+          domain   adaptive   randomized   delta pp         p      
+  ------------------------------------------------------------------
+         ambient      54.5%        45.5%        9.1    1.0000    ns
+    instrumental      72.7%        18.2%       54.5    0.0312     *
+     short_voice      36.4%        27.3%        9.1    1.0000    ns
+          speech      63.6%        27.3%       36.4    0.1250    ns
+
+  Pooled over all payload rates:
+    Adaptive    vs Randomized  delta  +13.6 pp (+22.1% relative), n=220, p=0.0000 **
+    Adaptive    vs Sequential  delta  +13.6 pp (+22.1% relative), n=220, p=0.0000 **
+    Randomized  vs Sequential  delta   +0.0 pp (+0.0% relative), n=220, p=1.0000 ns
+
+  Detector statistics compared directly (Mann-Whitney U on rs_diff, 50%):
+    Adaptive (0.02400) vs Randomized (0.04166): p=0.0137
+    Adaptive (0.02400) vs Sequential (0.03011): p=0.276
+
+==============================================================================
+  7. EXTRACTION RELIABILITY AND COST
+==============================================================================
+  method           extraction OK    mean BER   encode s   decode s
+  ------------------------------------------------------------------
+  Sequential        220/220         0.000000      0.256      0.186
+  Randomized        220/220         0.000000      0.547      0.488
+  Adaptive          220/220         0.000000      0.766      1.195
+
+  Before the energy-profile fix the adaptive decoder failed on 30% of the
+  corpus at 1-bit (43% at 2-bit, 55% at 4-bit) because encoder and decoder
+  derived their weights from different signals.
+
+==============================================================================
+  8. COMPONENT ABLATION  {plaintext, AES} x {sequential, uniform, adaptive}
+==============================================================================
+
+  Payload 10% — survival rate
+  strategy           plaintext           AES    crypto delta
+  ----------------------------------------------------------
+  sequential             59.1%         65.9%            6.8pp
+  uniform                72.7%         70.5%           -2.3pp
+  adaptive               88.6%         81.8%           -6.8pp
+
+    contribution of randomisation  (sequential -> uniform): +4.5 pp
+    contribution of energy weighting (uniform -> adaptive): +11.4 pp
+
+  Payload 50% — survival rate
+  strategy           plaintext           AES    crypto delta
+  ----------------------------------------------------------
+  sequential             31.8%         40.9%            9.1pp
+  uniform                36.4%         29.5%           -6.8pp
+  adaptive               52.3%         54.5%            2.3pp
+
+    contribution of randomisation  (sequential -> uniform): -11.4 pp
+    contribution of energy weighting (uniform -> adaptive): +25.0 pp
