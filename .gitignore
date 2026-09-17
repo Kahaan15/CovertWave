@@ -24,6 +24,20 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Test cache
+.pytest_cache/
+
 # Temp files
 *.tmp
 *.bak
+research/_tmp_*.wav
+research/_abl_*.wav
+research/benchmark_run.log
+research/benchmark_failures.log
+
+# Run logs
+research/seed_variance_run.log
+
+# Paper, presentation and reviewer reports — kept locally, never published
+/*.tex
+/*.pdf
