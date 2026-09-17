@@ -235,7 +235,7 @@ document.getElementById('decode-form').addEventListener('submit', function(e) {
             resultText.textContent = data.message;
             resultBox.classList.remove('hidden');
             if (data.energy_profile && data.payload_density) {
-                renderPayloadChart(data.energy_profile, data.payload_density, data.message);
+                renderPayloadChart(data.energy_profile, data.payload_density, data.message, data.bits_embedded);
             }
         })
         .catch(function(error) {
@@ -329,21 +329,24 @@ function renderAnalysisDashboard(data) {
     dashboard.innerHTML = html;
 }
 
-function renderPayloadChart(energyData, densityData, message) {
+function renderPayloadChart(energyData, densityData, message, bitsEmbedded) {
     var ctx = document.getElementById('payloadChart').getContext('2d');
 
     if (payloadChartInstance) {
         payloadChartInstance.destroy();
     }
 
-    var totalBits = densityData.reduce(function(a, b) { return a + b; }, 0);
+    // densityData counts embedding POSITIONS per frame, not bits. At 2- or 4-bit
+    // LSB depth each position carries several bits, so the two differ; the server
+    // reports both and the UI must not conflate them.
+    var totalPositions = densityData.reduce(function(a, b) { return a + b; }, 0);
+    var totalBits = (typeof bitsEmbedded === 'number') ? bitsEmbedded : totalPositions;
     var summaryBox = document.getElementById('extraction-summary');
-    summaryBox.innerHTML = '<h4>Secure Extraction Summary</h4>' +
-        'Your decrypted message is <strong>' + message.length + ' characters</strong> long. ' +
-        'However, to guarantee strong security, CovertWave encrypted your message into a secure ' +
-        '<strong>' + totalBits + '-bit payload</strong> using AES-256. This payload was shattered into ' +
-        'microscopic fragments and seamlessly embedded across the audio file. The neon green spikes on ' +
-        'the waveform above reveal the exact physical locations of these hidden fragments.';
+    summaryBox.innerHTML = '<h4>Extraction Summary</h4>' +
+        'Recovered <strong>' + message.length + ' characters</strong>. The message was ' +
+        'encrypted with AES-256-CBC and embedded as <strong>' + totalBits + ' bits</strong> ' +
+        'across <strong>' + totalPositions + ' sample positions</strong>, selected by a ' +
+        'password-derived key. The green trace marks where those samples fall in the waveform.';
     summaryBox.classList.remove('hidden');
 
     var labels = energyData.map(function(_, i) { return i; });

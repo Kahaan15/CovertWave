@@ -3,5 +3,8 @@ uvicorn
 python-multipart
 numpy
 scipy
-pycryptodome
 matplotlib
+soundfile
+pandas
+seaborn
+pycryptodome
