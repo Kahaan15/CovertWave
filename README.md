@@ -22,7 +22,7 @@ This code backs the paper *"Energy-Weighted Stochastic LSB: Enhancing Steganalys
 
 ## Features
 
-- **Adaptive Energy-Weighted Embedding** — Stochastically distributes payload bits into high-energy audio frames, making detection statistically infeasible
+- **Adaptive Energy-Weighted Embedding** — Stochastically distributes payload bits into high-energy audio frames, substantially reducing detectability by classical steganalysis
 - **AES-256-CBC Encryption** — Messages are encrypted before embedding, providing robust confidentiality
 - **Multi-bit LSB Support** — Choose between 1-bit (highest quality), 2-bit (balanced), or 4-bit (high capacity) embedding
 - **Real-time Capacity Meter** — Live progress bar with color-coded security warnings (green/yellow/red)
