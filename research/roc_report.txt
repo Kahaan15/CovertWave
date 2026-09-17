@@ -1,0 +1,71 @@
+==============================================================================
+  THRESHOLD-FREE DETECTOR EVALUATION (ROC)
+==============================================================================
+  Negatives: 0%-payload control runs on the same recordings.
+  P_E = min average decision error. 0.5 = undetectable, 0 = always caught.
+
+  Chi-Square   [saturated on 16-bit audio — no discriminative power]
+    payload              Sequential              Randomized                Adaptive
+                    AUC         P_E         AUC         P_E         AUC         P_E
+  ---------------------------------------------------------------------------------
+         1%       0.562       0.432       0.500       0.500       0.500       0.500
+         5%       0.574       0.398       0.505       0.489       0.500       0.489
+        10%       0.593       0.398       0.509       0.477       0.505       0.489
+        25%       0.559       0.443       0.544       0.455       0.503       0.477
+        50%       0.601       0.409       0.586       0.409       0.510       0.455
+
+  RS Analysis
+    payload              Sequential              Randomized                Adaptive
+                    AUC         P_E         AUC         P_E         AUC         P_E
+  ---------------------------------------------------------------------------------
+         1%       0.606       0.386       0.482       0.466       0.519       0.443
+         5%       0.718       0.284       0.640       0.375       0.560       0.420
+        10%       0.730       0.284       0.749       0.273       0.595       0.386
+        25%       0.824       0.193       0.867       0.159       0.758       0.261
+        50%       0.901       0.159       0.925       0.102       0.893       0.148
+
+  Sample Pair
+    payload              Sequential              Randomized                Adaptive
+                    AUC         P_E         AUC         P_E         AUC         P_E
+  ---------------------------------------------------------------------------------
+         1%       0.712       0.284       0.556       0.409       0.529       0.432
+         5%       0.761       0.239       0.688       0.307       0.590       0.386
+        10%       0.806       0.227       0.740       0.261       0.660       0.330
+        25%       0.850       0.205       0.849       0.193       0.758       0.261
+        50%       0.896       0.159       0.914       0.136       0.871       0.170
+
+  Histogram
+    payload              Sequential              Randomized                Adaptive
+                    AUC         P_E         AUC         P_E         AUC         P_E
+  ---------------------------------------------------------------------------------
+         1%       0.506       0.466       0.497       0.489       0.503       0.489
+         5%       0.514       0.466       0.498       0.489       0.499       0.477
+        10%       0.511       0.466       0.506       0.477       0.501       0.477
+        25%       0.521       0.455       0.504       0.477       0.505       0.466
+        50%       0.532       0.455       0.522       0.455       0.513       0.466
+
+==============================================================================
+  ADAPTIVE vs RANDOMIZED — the discriminative detectors only
+==============================================================================
+
+  RS Analysis: P_E (higher = better hidden)
+    payload    Randomized    Adaptive      gain    Mann-Whitney p
+  ---------------------------------------------------------------
+         1%         0.466       0.443    -0.023        0.7465  ns
+         5%         0.375       0.420    +0.045        0.0750  ns
+        10%         0.273       0.386    +0.114        0.0131   *
+        25%         0.159       0.261    +0.102        0.0002  **
+        50%         0.102       0.148    +0.045        0.0068  **
+
+  Sample Pair: P_E (higher = better hidden)
+    payload    Randomized    Adaptive      gain    Mann-Whitney p
+  ---------------------------------------------------------------
+         1%         0.409       0.432    +0.023        0.2952  ns
+         5%         0.307       0.386    +0.080        0.0682  ns
+        10%         0.261       0.330    +0.068        0.0277   *
+        25%         0.193       0.261    +0.068        0.0050  **
+        50%         0.136       0.170    +0.034        0.0123   *
+
+  The p-value tests whether the adaptive method yields SMALLER detector
+  statistics than uniform randomised embedding on the same recordings —
+  a direct test on the continuous statistic, with no threshold involved.

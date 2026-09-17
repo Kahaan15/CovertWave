@@ -1,0 +1,24 @@
+==============================================================================
+  RUN-TO-RUN VARIANCE OF THE REPORTED SURVIVAL RATES
+==============================================================================
+  44 covers x 3 methods x 2 payloads x 10 passwords
+  Each repeat re-draws the AES key and the entire position set.
+
+
+   payload       method     mean     sd    min    max   range
+  ------------------------------------------------------------
+       50%   Sequential    38.4%   2.92   34.1   43.2     9.1
+       50%   Randomized    28.0%   2.64   25.0   34.1     9.1
+       50%     Adaptive    53.2%   4.04   45.5   59.1    13.6
+       25%   Sequential    60.0%   3.89   54.5   63.6     9.1
+       25%   Randomized    53.9%   3.40   47.7   61.4    13.6
+       25%     Adaptive    73.4%   3.22   68.2   79.5    11.4
+
+  ADAPTIVE vs RANDOMIZED, across repeats:
+     50%: delta = +25.2 pp  (sd 4.35, range +15.9 to +31.8)
+     25%: delta = +19.5 pp  (sd 3.42, range +15.9 to +25.0)
+
+  The benchmark reports a single realisation per condition. The spread
+  above is the uncertainty that figure carries beyond the Wilson
+  interval, which accounts for variation across covers but not for the
+  stochastic draw itself.
